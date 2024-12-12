@@ -1,0 +1,445 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Пример сложной и разнообразной программы на Python длиной примерно в 500 строк.
+# Данная программа выполняет множество различных действий:
+#  - Определяет несколько классов (например, для работы с геометрическими фигурами)
+#  - Генерирует случайные данные, сортирует их, ищет максимум и минимум
+#  - Читает ввод пользователя, выводит различные сообщения
+#  - Демонстрирует работу с файлами (чтение/запись)
+#  - Показывает работу с декораторами
+#  - Выполняет простую текстовую приключенческую логику
+#  - Обрабатывает исключения
+
+import sys
+import os
+import math
+import random
+import datetime
+from functools import wraps
+
+
+# ---------------------------------------------------------------------------
+# Вспомогательные функции
+# ---------------------------------------------------------------------------
+
+def timing_decorator(func):
+    """Декоратор, замеряющий время выполнения функции"""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start = datetime.datetime.now()
+        result = func(*args, **kwargs)
+        end = datetime.datetime.now()
+        duration = (end - start).total_seconds()
+        # Просто выводим время работы, для разнообразия
+        print(f"Функция {func.__name__} выполнялась {duration:.6f} секунд.")
+        return result
+    return wrapper
+
+def hello_user(name: str):
+    """Простая функция, приветствующая пользователя"""
+    print(f"Привет, {name}!")
+
+def random_list(size=10, start=0, end=100):
+    """Генерирует список случайных чисел"""
+    return [random.randint(start, end) for _ in range(size)]
+
+def sort_list(lst):
+    """Сортировка списка"""
+    return sorted(lst)
+
+def find_min_max(lst):
+    """Найти минимум и максимум"""
+    if not lst:
+        return None, None
+    return min(lst), max(lst)
+
+def read_user_input(prompt="Введите что-нибудь: "):
+    """Читает ввод пользователя"""
+    return input(prompt)
+
+def write_to_file(filename, content):
+    """Запись строки в файл"""
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write(content)
+
+def read_from_file(filename):
+    """Чтение содержимого файла"""
+    if not os.path.exists(filename):
+        return ""
+    with open(filename, 'r', encoding='utf-8') as f:
+        return f.read()
+
+def factorial(n):
+    """Простая реализация факториала"""
+    if n <= 1:
+        return 1
+    return n * factorial(n-1)
+
+# ---------------------------------------------------------------------------
+# Классы для работы с геометрическими фигурами
+# ---------------------------------------------------------------------------
+
+class Shape:
+    """Базовый класс для геометрических фигур"""
+    def area(self):
+        raise NotImplementedError
+
+    def perimeter(self):
+        raise NotImplementedError
+
+class Rectangle(Shape):
+    """Прямоугольник"""
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+    
+    def area(self):
+        return self.width * self.height
+    
+    def perimeter(self):
+        return 2 * (self.width + self.height)
+
+class Circle(Shape):
+    """Круг"""
+    def __init__(self, radius):
+        self.radius = radius
+    
+    def area(self):
+        return math.pi * self.radius**2
+    
+    def perimeter(self):
+        return 2 * math.pi * self.radius
+
+class Triangle(Shape):
+    """Треугольник"""
+    def __init__(self, a, b, c):
+        self.a = a
+        self.b = b
+        self.c = c
+    
+    def area(self):
+        # Формула Герона для площади треугольника
+        s = (self.a + self.b + self.c)/2
+        return math.sqrt(s*(s-self.a)*(s-self.b)*(s-self.c))
+    
+    def perimeter(self):
+        return self.a + self.b + self.c
+
+# ---------------------------------------------------------------------------
+# Дополнительные классы для демонстрации ООП
+# ---------------------------------------------------------------------------
+
+class Person:
+    """Класс Человек"""
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+    
+    def say_hello(self):
+        print(f"Меня зовут {self.name}, мне {self.age} лет.")
+
+class Student(Person):
+    """Класс Студент, наследник Человека"""
+    def __init__(self, name, age, university):
+        super().__init__(name, age)
+        self.university = university
+    
+    def say_hello(self):
+        super().say_hello()
+        print(f"Я учусь в университете {self.university}.")
+
+# ---------------------------------------------------------------------------
+# Простая текстовая приключенческая игра
+# ---------------------------------------------------------------------------
+
+class Room:
+    """Комната в игре"""
+    def __init__(self, name, description):
+        self.name = name
+        self.description = description
+        self.exits = {}
+        self.items = []
+    
+    def add_exit(self, direction, room):
+        self.exits[direction] = room
+    
+    def add_item(self, item):
+        self.items.append(item)
+    
+    def describe(self):
+        print(f"Вы находитесь в комнате: {self.name}")
+        print(self.description)
+        if self.items:
+            print("Вы видите следующие предметы:")
+            for it in self.items:
+                print(f" - {it}")
+        if self.exits:
+            print("Вы можете выйти в направлениях:", ", ".join(self.exits.keys()))
+
+
+class Game:
+    """Простая текстовая приключенческая игра"""
+    def __init__(self):
+        self.rooms = {}
+        self.current_room = None
+        self.inventory = []
+    
+    def add_room(self, room):
+        self.rooms[room.name] = room
+    
+    def set_start_room(self, room_name):
+        self.current_room = self.rooms.get(room_name)
+    
+    def move(self, direction):
+        if self.current_room and direction in self.current_room.exits:
+            self.current_room = self.current_room.exits[direction]
+            self.current_room.describe()
+        else:
+            print("Вы не можете туда пойти!")
+    
+    def take_item(self, item_name):
+        if self.current_room and item_name in self.current_room.items:
+            self.current_room.items.remove(item_name)
+            self.inventory.append(item_name)
+            print(f"Вы взяли {item_name}.")
+        else:
+            print("Здесь нет такого предмета.")
+
+    def show_inventory(self):
+        if self.inventory:
+            print("У вас есть:")
+            for it in self.inventory:
+                print(f" - {it}")
+        else:
+            print("У вас ничего нет.")
+
+    def play(self):
+        print("Добро пожаловать в игру!")
+        if self.current_room:
+            self.current_room.describe()
+        while True:
+            command = input("> ").strip().lower()
+            if command in ["выход", "exit", "quit"]:
+                print("До свидания!")
+                break
+            elif command.startswith("идти "):
+                direction = command.split(" ", 1)[1]
+                self.move(direction)
+            elif command.startswith("взять "):
+                item_name = command.split(" ", 1)[1]
+                self.take_item(item_name)
+            elif command == "инвентарь":
+                self.show_inventory()
+            else:
+                print("Неизвестная команда.")
+
+
+# ---------------------------------------------------------------------------
+# Еще немного разнообразия: работа с рандомом, матрицами, генераторами
+# ---------------------------------------------------------------------------
+
+def generate_matrix(rows, cols, start=0, end=9):
+    """Генерирует матрицу (список списков) случайных чисел"""
+    return [[random.randint(start, end) for _ in range(cols)] for _ in range(rows)]
+
+def print_matrix(matrix):
+    """Печатает матрицу"""
+    for row in matrix:
+        print(" ".join(map(str, row)))
+
+def transpose_matrix(matrix):
+    """Транспонирует матрицу"""
+    if not matrix:
+        return []
+    rows = len(matrix)
+    cols = len(matrix[0])
+    return [[matrix[r][c] for r in range(rows)] for c in range(cols)]
+
+# Генераторы
+def even_numbers_up_to(n):
+    """Генератор чётных чисел до n"""
+    for i in range(n+1):
+        if i % 2 == 0:
+            yield i
+
+def odd_numbers_up_to(n):
+    """Генератор нечётных чисел до n"""
+    for i in range(n+1):
+        if i % 2 == 1:
+            yield i
+
+# Исключения и их обработка
+def safe_divide(a, b):
+    """Безопасное деление с обработкой исключений"""
+    try:
+        return a / b
+    except ZeroDivisionError:
+        print("Деление на ноль!")
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Лямбда-функции и работа с map, filter, reduce
+# ---------------------------------------------------------------------------
+
+from functools import reduce
+
+def sum_list(lst):
+    return reduce(lambda x, y: x + y, lst, 0)
+
+def filter_positive(lst):
+    return list(filter(lambda x: x > 0, lst))
+
+def square_list(lst):
+    return list(map(lambda x: x*x, lst))
+
+# ---------------------------------------------------------------------------
+# Символьное искусство (ASCII Art) для разнообразия
+# ---------------------------------------------------------------------------
+
+def print_ascii_art():
+    print("   ___")
+    print("  (o o)  < Привет!")
+    print("   \\ /")
+    print("    0")
+    print("")
+
+def print_large_ascii_title():
+    print("########################################")
+    print("#         СЛОЖНАЯ ПРОГРАММА 500         #")
+    print("########################################\n")
+
+# ---------------------------------------------------------------------------
+# Простая командная логика: аргументы скрипта
+# ---------------------------------------------------------------------------
+
+def process_command_line_args():
+    args = sys.argv[1:]
+    if not args:
+        print("Нет аргументов командной строки")
+        return
+    print("Аргументы командной строки:", args)
+
+# ---------------------------------------------------------------------------
+# Пример взаимодействия с датой и временем
+# ---------------------------------------------------------------------------
+
+def print_current_time():
+    now = datetime.datetime.now()
+    print("Сейчас:", now.strftime("%Y-%m-%d %H:%M:%S"))
+
+# ---------------------------------------------------------------------------
+# Основная функция main
+# ---------------------------------------------------------------------------
+
+@timing_decorator
+def main():
+    print_large_ascii_title()
+    hello_user("Тестовый пользователь")
+
+    # Работа со случайными числами и списками
+    lst = random_list(20, -10, 10)
+    print("Случайный список:", lst)
+    slst = sort_list(lst)
+    print("Отсортированный список:", slst)
+    mn, mx = find_min_max(lst)
+    print(f"Минимум: {mn}, Максимум: {mx}")
+
+    # Работа с файлами (пишем в файл и читаем из него)
+    filename = "test_output.txt"
+    write_to_file(filename, "Это тестовое содержимое файла.\nПривет, файл!")
+    content = read_from_file(filename)
+    print("Содержимое файла:", content)
+
+    # Факториал
+    print("Факториал 5:", factorial(5))
+
+    # Геометрические фигуры
+    rect = Rectangle(10, 5)
+    cir = Circle(3)
+    tri = Triangle(3, 4, 5)
+    print("Прямоугольник:", rect.area(), rect.perimeter())
+    print("Круг:", cir.area(), cir.perimeter())
+    print("Треугольник:", tri.area(), tri.perimeter())
+
+    # ООП: Person и Student
+    p = Person("Иван", 30)
+    s = Student("Мария", 20, "МГУ")
+    p.say_hello()
+    s.say_hello()
+
+    # Текстовая игра
+    r1 = Room("Комната 1", "Это маленькая уютная комната с деревянным полом.")
+    r2 = Room("Коридор", "Длинный коридор с каменными стенами.")
+    r3 = Room("Зал", "Большой зал с высоким потолком.")
+
+    r1.add_exit("восток", r2)
+    r2.add_exit("запад", r1)
+    r2.add_exit("юг", r3)
+    r3.add_exit("север", r2)
+
+    r1.add_item("ключ")
+    r2.add_item("факел")
+    r3.add_item("меч")
+
+    game = Game()
+    game.add_room(r1)
+    game.add_room(r2)
+    game.add_room(r3)
+    game.set_start_room("Комната 1")
+
+    # Матрицы
+    mat = generate_matrix(5, 5)
+    print("Случайная матрица:")
+    print_matrix(mat)
+    print("Транспонированная матрица:")
+    tmat = transpose_matrix(mat)
+    print_matrix(tmat)
+
+    # Генераторы
+    evens = list(even_numbers_up_to(10))
+    odds = list(odd_numbers_up_to(10))
+    print("Чётные числа до 10:", evens)
+    print("Нечётные числа до 10:", odds)
+
+    # Исключения
+    print("Безопасное деление 10/2:", safe_divide(10, 2))
+    print("Безопасное деление 10/0:", safe_divide(10, 0))
+
+    # Функции высшего порядка
+    positives = filter_positive(lst)
+    print("Положительные числа в списке:", positives)
+    squares = square_list(lst)
+    print("Квадраты элементов:", squares)
+    summation = sum_list(lst)
+    print("Сумма всех элементов списка:", summation)
+
+    # ASCII Art
+    print_ascii_art()
+
+    # Аргументы командной строки
+    process_command_line_args()
+
+    # Дата и время
+    print_current_time()
+
+    # Пример простого диалога с пользователем (закомментировано, т.к. может мешать автотесту)
+    # user_answer = read_user_input("Скажите что-нибудь: ")
+    # print("Вы сказали:", user_answer)
+
+    print("\nТеперь вы можете сыграть в мини-игру. Для выхода введите 'выход'.")
+    # Для разнообразия демонстрируем работу игры.
+    # Закомментируйте, если не хотите интерактивной части.
+    # game.play()  # Оставим это закомментированным, чтобы не зависать.
+
+    # Выводим завершающее сообщение
+    print("Программа завершена.")
+
+# ---------------------------------------------------------------------------
+# Запуск программы
+# ---------------------------------------------------------------------------
+
+if __name__ == "__main__":
+  
+    main()
